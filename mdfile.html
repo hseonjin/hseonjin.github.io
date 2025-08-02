@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>CS 공부 상세</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; width: 1000px; margin: auto; padding: 1rem; }
+    a.back { display: inline-block; margin-bottom: 1rem; color: #007acc; text-decoration:none; }
+    a.back:hover { text-decoration: underline; }
+    #content { background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 0 6px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back">&larr; 목록으로 돌아가기</a>
+  <h1 id="doc-title" style="margin-bottom: 1rem;">로딩 중...</h1>
+  <div id="content">로드 중...</div>
+
+  <script>
+    // URL 파라미터에서 file 이름 추출
+    function getQueryParam(param) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(param);
+    }
+
+    const filename = getQueryParam('file');
+    const contentEl = document.getElementById('content');
+    const titleEl = document.getElementById('doc-title');
+
+    if (!filename) {
+      titleEl.textContent = "파일 지정 안됨";
+      contentEl.innerHTML = "<p style='color:red;'>불러올 파일이 지정되지 않았습니다.</p>";
+    } else {
+      // raw github 경로 설정
+      const owner = "hseonjin";   // 여기에 본인 깃허브 아이디 넣기
+      const repo = "hseonjin.github.io";           // 본인 레포지토리 이름 넣기
+      const folder = "study";         // md 파일들이 들어있는 폴더명
+      const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${folder}/${filename}`;
+
+      fetch(rawUrl)
+        .then(res => {
+          if (!res.ok) throw new Error('파일을 불러올 수 없습니다.');
+          return res.text();
+        })
+        .then(md => {
+          // 제목 추출: 첫 번째 # 헤딩 (ex: # 제목)
+          const match = md.match(/^#\s+(.*)$/m);
+          if (match) {
+            titleEl.textContent = match[1];
+            document.title = match[1];
+          } else {
+            // 헤딩 없으면 파일명 기반 제목
+            const fallbackTitle = filename.replace(/^\d+_/, '').replace('.md','').replace(/_/g,' ');
+            titleEl.textContent = fallbackTitle;
+            document.title = fallbackTitle;
+          }
+          contentEl.innerHTML = marked.parse(md);
+        })
+        .catch(err => {
+          contentEl.innerHTML = `<p style="color:red;">오류: ${err.message}</p>`;
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CS 100일</title>
+  <style>
+    body { font-family: Arial, sans-serif; width: 1000px; margin: auto; padding: 1rem; }
+    ul { list-style:none; border: 1px solid #c4c2c2; padding: 1rem; border-radius: 8px; box-shadow: 0 0 6px rgba(0,0,0,0.1); }
+    li { position:relative; padding-left: 2em; margin: 10px 0;}
+    li::before {  content: "✍🏻"; position: absolute; left: 0; top: 0; font-size: 1em; line-height: 1;}
+    li a { color: inherit; text-decoration:none; font-size: large;}
+    li a:active { color: inherit; }
+    li:hover { font-size: larger; font-weight: bold; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <h1>CS 100일</h1>
+  <ul id="topic-list">
+      <!-- 자바스크립트로 채움 -->
+  </ul>
+
+<script>
+  const owner = "hseonjin";   // 여기에 본인 깃허브 아이디 넣기
+  const repo = "hseonjin.github.io";           // 본인 레포지토리 이름 넣기
+  const folder = "study";         // md 파일들이 들어있는 폴더명
+
+  const listEl = document.getElementById("topic-list");
+  const contentEl = document.getElementById("md-content");
+
+  async function fetchTopicFiles() {
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${folder}`;
+    try {
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error(`API 호출 실패: ${res.status}`);
+      const files = await res.json();
+
+      // md 파일만 필터링하고, 정렬(파일명 숫자 기준)
+      const mdFiles = files
+        .filter(f => f.name.endsWith(".md"))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+      listEl.innerHTML = ""; // 초기화
+      mdFiles.forEach(file => {
+        // 파일명에서 앞 번호 제거하고 제목 추출 (언더바 _ 는 띄어쓰기)
+        const title = file.name.replace(/^\d+_/, "").replace(".md", "").replace(/_/g, " ");
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = `mdfile.html?file=${encodeURIComponent(file.name)}`;
+        a.textContent = title;
+        li.appendChild(a);
+        listEl.appendChild(li);
+      });
+
+    } catch (e) {
+      listEl.innerHTML = `<li style="color:red;">목록 로딩 실패: ${e.message}</li>`;
+    }
+  }
+
+  fetchTopicFiles();
+</script>
+</body>
+</html>
